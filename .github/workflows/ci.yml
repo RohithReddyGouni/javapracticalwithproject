@@ -39,3 +39,53 @@ jobs:
 
       - name: Verify Java inside the image
         run: docker run --rm --entrypoint java airbnb-app:ci -version
+
+  publish:
+    name: Publish Docker image
+    needs: build
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      packages: write
+
+    env:
+      IMAGE_NAME: ghcr.io/rohithreddygouni/javapracticalwithproject
+      IMAGE_TAG: sha-${{ github.sha }}
+
+    steps:
+      - name: Download project code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build image for publication
+        run: |
+          docker build \
+            --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" \
+            --tag "$IMAGE_NAME:$IMAGE_TAG" \
+            .
+
+      - name: Verify Java inside the image
+        run: |
+          docker run --rm \
+            --entrypoint java \
+            "$IMAGE_NAME:$IMAGE_TAG" \
+            -version
+
+      - name: Sign in to GitHub Container Registry
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GH_TOKEN" |
+            docker login ghcr.io \
+              --username "$GITHUB_ACTOR" \
+              --password-stdin
+
+      - name: Publish image
+        run: docker push "$IMAGE_NAME:$IMAGE_TAG"
