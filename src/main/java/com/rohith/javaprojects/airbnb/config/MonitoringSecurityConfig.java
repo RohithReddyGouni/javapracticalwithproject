@@ -50,6 +50,11 @@ public class MonitoringSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 HttpMethod.GET,
+                                "/actuator/health/liveness",
+                                "/actuator/health/readiness"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
                                 "/actuator/health",
                                 "/actuator/metrics",
                                 "/actuator/metrics/**",
