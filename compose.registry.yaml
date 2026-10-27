@@ -1,0 +1,4 @@
+services:
+  app:
+    image: "${APP_IMAGE:?Set APP_IMAGE in .secrets/release.env}"
+    platform: linux/amd64

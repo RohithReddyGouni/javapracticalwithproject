@@ -1,0 +1,16 @@
+services:
+  k6:
+    image: grafana/k6:2.3.0
+
+    profiles:
+      - loadtest
+
+    env_file:
+      - ./.secrets/load-test.env
+
+    volumes:
+      - ./load-tests:/scripts:ro
+
+    command:
+      - run
+      - /scripts/hotel-read.js
